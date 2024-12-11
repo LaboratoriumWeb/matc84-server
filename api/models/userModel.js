@@ -1,5 +1,5 @@
 const { DataTypes, Model } = require('sequelize');
-const {connection} = require ('../database/database.js');
+const {sequelize} = require('../database/database');
 
 class User extends Model {
     static associate(models) {
@@ -14,7 +14,7 @@ User.init({
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
 }, {
-    sequelize: connection,
+    sequelize,
     modelName: "User",
     tableName: "users",
     timestamps: true,
