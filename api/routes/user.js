@@ -1,15 +1,39 @@
 /**
  * @swagger
- * tags:
- *   name: User
- *   description: User management routes
+ * /users:
+ *   get:
+ *     summary: Get all users
+ *     tags: [User]
+ *     responses:
+ *       200:
+ *         description: List of all users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       role:
+ *                         type: string
+ *       500:
+ *         description: Server error
  */
 
 /**
  * @swagger
- * /users/create:
+ * /users/register:
  *   post:
- *     summary: Create a new user
+ *     summary: Register a new user
  *     tags: [User]
  *     requestBody:
  *       required: true
@@ -28,40 +52,23 @@
  *                 type: string
  *     responses:
  *       201:
- *         description: User created
- *         content:
- *           application/json:
- *           schema:
- *             type: object
- *             properties:
- *               message:
- *                 type: string
- *               user:
- *                 type: object
- *                 properties:
- *                   name:
- *                     type: string
- *                   email:
- *                     type: string
- *                   password:
- *                     type: string
- *                   role:
- *                     type: string
+ *         description: User created successfully
  *       400:
- *         description: Email already registered
+ *         description: Invalid input
+ *       500:
+ *         description: Error creating user
  */
 
 /**
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Get a user by ID
+ *     summary: Get user by ID
  *     tags: [User]
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
- *         description: The ID of the user to retrieve
  *         schema:
  *           type: integer
  *     responses:
@@ -69,31 +76,33 @@
  *         description: User found
  *         content:
  *           application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role:
+ *                   type: string
  *       404:
  *         description: User not found
  *       500:
- *         description: Error getting user
+ *         description: Server error
  */
 
 /**
  * @swagger
  * /users/{id}:
  *   put:
- *     summary: Update a user by ID
+ *     summary: Update user by ID
  *     tags: [User]
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
- *         description: The ID of the user to update
  *         schema:
  *           type: integer
  *     requestBody:
@@ -113,7 +122,9 @@
  *       200:
  *         description: User updated successfully
  *       400:
- *         description: Email already registered
+ *         description: Invalid input
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Error updating user
  */
@@ -122,13 +133,12 @@
  * @swagger
  * /users/{id}:
  *   delete:
- *     summary: Delete a user by ID
+ *     summary: Delete user by ID
  *     tags: [User]
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
- *         description: The ID of the user to delete
  *         schema:
  *           type: integer
  *     responses:
@@ -140,41 +150,14 @@
  *         description: Error deleting user
  */
 
-/**
-* @swagger
-* /users:
-*   get:
-*     summary: Get all users
-*     tags: [User]
-*     responses:
-*       200:
-*         description: List of all users
-*         content:
-*           application/json:
-*           schema:
-*             type: object
-*             properties:
-*               users:
-*                 type: array
-*                 items:
-*                   type: object
-*                   properties:
-*                     id:
-*                       type: integer
-*                     name:
-*                       type: string
-*                     email:
-*                       type: string
-*                     role:
-*                       type: string
-*       500:
-*         description: Server error
-*/
-
 const express = require("express");
-const { create, } = require("../controllers/userController");
+const { create, getAll, getUserById, update, delete: deleteUser } = require("../controllers/userController");
 const router = express.Router();
 
 router.post("/register", create);
+router.get("/", getAll);
+router.get("/:id", getUserById);
+router.put("/:id", update);
+router.delete("/:id", deleteUser);
 
 module.exports = router;

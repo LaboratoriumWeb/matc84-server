@@ -5,6 +5,7 @@ const app = express();
 const cors = require("cors");
 const authRoutes = require("./routes/auth.js");
 const userRoutes = require("./routes/user.js");
+const { swaggerUi, swaggerSpec } = require("./helpers/swagger.js");
 
 app.use(cors());
 app.use(express.json());

@@ -16,7 +16,7 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: ['./routes/*.js'], // Caminho para os arquivos de rotas
+  apis: ['./api/routes/*.js'], // Caminho para os arquivos de rotas
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
