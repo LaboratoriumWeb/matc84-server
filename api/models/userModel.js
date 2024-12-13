@@ -2,8 +2,19 @@ const { DataTypes, Model } = require('sequelize');
 const {sequelize} = require('../database/database');
 
 class User extends Model {
+
     static associate(models) {
+        this.hasMany(models.Task, {
+            foreignKey: {
+                name: "userId",
+                allowNull: false, //Garante participação total
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+            as: 'tasks' // Nome do relacionamento
+        });
     }
+    
 }
 
 User.init({

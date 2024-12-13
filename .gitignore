@@ -131,3 +131,6 @@ dist
 .pnp.*
 doc/diagrama/.$medcheck.drawio.dtmp
 doc/diagrama/.$medcheck.drawio.bkp
+
+# txt files
+*.txt
