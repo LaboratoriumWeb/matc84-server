@@ -11,6 +11,9 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 
+// Rota do Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 initializeSequelize().then(() => {
   sequelize.sync().then(() => {
     app.listen(process.env.APP_PORT, () => {
