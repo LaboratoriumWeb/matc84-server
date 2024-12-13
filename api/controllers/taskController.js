@@ -1,4 +1,7 @@
 const Task = require("../models/taskModel");
+
+class TaskController{
+
 const User = require("../models/userModel")
 
 class TaskController{
@@ -47,7 +50,9 @@ class TaskController{
         } catch (error) {
             res.status(400).json({ error: error.message });
         }
-    } //Comment - Felipe: Faz sentido retornar todas as Tasks do banco de dados independente do usuário?
+    }
+
+  } //Comment - Felipe: Faz sentido retornar todas as Tasks do banco de dados independente do usuário?
 
     async getById(req, res) {
         try {
@@ -66,6 +71,7 @@ class TaskController{
         try {
             const task = await Task.findByPk(req.params.id);
             if (task) {
+                await task.update(req.body);
                 await task.update(req.body);//Comment - Felipe: Se o usuário quiser definir status, title e corpo como vazio talvez seja interessante excluir a task
                 res.status(200).json(task);
             } else {

@@ -25,7 +25,7 @@ User.init({
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
 }, {
-    sequelize: sequelize,
+    sequelize,
     modelName: "User",
     tableName: "users",
     timestamps: true,
