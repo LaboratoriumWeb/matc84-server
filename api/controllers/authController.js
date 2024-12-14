@@ -12,7 +12,7 @@ class AuthController {
             const user = await User.findOne({ where: { email } }); 
             if (!user) return res.status(404).json({ message: "User not found" });
 
-            isMatch = AuthService.login(email, password)
+            const isMatch = await AuthService.login(email, password);
             if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
             const token = generateToken(user);
