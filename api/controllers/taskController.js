@@ -1,7 +1,6 @@
 const Task = require("../models/taskModel");
-
-
 const User = require("../models/userModel")
+const TaskService = require("../services/taskService");
 
 class TaskController{
 
@@ -20,12 +19,14 @@ class TaskController{
                 userId = user.id
             }
 
-            const newTask = await Task.create({
-                title: title,
-                description: description,
-                status: status,
-                userId: userId
-            })
+//            const newTask = await Task.create({
+//                title: title,
+//                description: description,
+//                status: status,
+//                userId: userId
+//            })
+
+            const newTask = await taskService.createTask(title,description,status,userId);
 
             return res.status(201).json({message: "Task created"}, newTask);
         }catch(error){
@@ -67,13 +68,15 @@ class TaskController{
 
     async update(req, res) {
         try {
-            const task = await Task.findByPk(req.params.id);
-            if (task) {
-                await task.update(req.body);
-                await task.update(req.body);//Comment - Felipe: Se o usuário quiser definir status, title e corpo como vazio talvez seja interessante excluir a task
-                res.status(200).json(task);
-            } else {
+	    const taskId = req.params.id;
+            const task = await Task.findByPk(taskId);
+            if (!task) {
                 res.status(404).json({ error: "Task not found" });
+	    }
+
+	    await TaskService.updateTask(taskId, req.body);
+            //await task.update(req.body);//Comment - Felipe: Se o usuário quiser definir status, title e corpo como vazio talvez seja interessante excluir a task
+            res.status(200).json(task);
             }
         } catch (error) {
             res.status(400).json({ error: error.message });
@@ -82,13 +85,13 @@ class TaskController{
 
     async delete(req, res) {
         try {
-            const task = await Task.findByPk(req.params.id);
-            if (task) {
-                await task.destroy();
-                res.status(204).json();
-            } else {
+	    const taskId = req.params.id;
+            const task = await Task.findByPk(taskId);
+            if (!task) {
                 res.status(404).json({ error: "Task not found" });
             }
+		await TaskService.deleteTask(taskId);
+                res.status(204).json();
         } catch (error) {
             res.status(400).json({ error: error.message });
         }

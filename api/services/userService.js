@@ -30,6 +30,5 @@ class UserService{
 
     }
 
-    static async 
 }
 module.exports = UserService;
