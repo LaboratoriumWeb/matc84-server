@@ -65,7 +65,7 @@ const express = require("express");
 const { register, login } = require("../controllers/authController");
 const router = express.Router();
 
-router.post("/create", register);
+// router.post("/create", register); - rota duplicada, endpoint para cadastro => /register
 router.post("/login", login);
 
 module.exports = router;

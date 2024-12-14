@@ -3,32 +3,31 @@ const bcrypt = require("bcryptjs")
 const crypto = require("crypto")
 const nodemailer = require("nodemailer")
 const {Op} = require("sequelize")
+const UserService = require("../services/userService")
 
 class UserController{
-    static async create(req, res){
-        try{
-            const { name, email, password, role } = req.query;
-            if (!(name && email && senha && role)) {
-                throw "All input are required";
+    
+    static async create(req, res) {
+        try {
+            const { name, email, password, role } = req.body;
+    
+            if (!(name && email && password && role)) {
+                return res.status(400).json({ message: "All input fields are required" });
             }
-
-            const user = await User.findOne({where: {email}});
-
-            user ? res.status(400).json({message: "Email already registered"}) : '';
-           
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-            const newUser = await User.create({
-                name,
-                email: email.toLowerCase(),
-                password: hashedPassword,
-                role
-            })
-
-            delete newUser.dataValues.password;
-            return res.status(201).json({message: "User created"}, newUser);
-        }catch(error){
-            return error;
+    
+            const user = await User.findOne({ where: { email } });
+    
+            if (user) {
+                return res.status(400).json({ message: "Email already registered" });
+            }
+    
+            const hashedPassword = await bcrypt.hash(password, 10);
+    
+            const newUser = await UserService.createUser(name, email, hashedPassword, role);
+    
+            return res.status(201).json({ message: "User created", user: newUser });
+        } catch (error) {
+            return res.status(500).json({ error: error.message || "Internal Server Error" });
         }
     }
 
@@ -61,13 +60,15 @@ class UserController{
                 updatedData.email = email.toLowerCase();
             }
     
-            await User.update(updatedData, { where: { id: userId } });
-    
+           
+            await UserService.updateUser(userId, updatedData)
+
             // Retornar os dados do usuário atualizados
             const updatedUser = await User.findOne({ where: { id: userId } });
             delete updatedUser.dataValues.password; // Não mostrar a senha por motivos de segurança
     
             return res.status(200).json({ message: "User updated successfully", user: updatedUser });
+
         } catch (error) {
             return res.status(500).json({ message: "Error updating user", error: error.message });
         }
@@ -84,7 +85,7 @@ class UserController{
             }
 
             // Deletar usuário
-            await User.destroy({ where: { id: userId } });
+            await UserService.deleteUser(userId)
             
             return res.status(200).json({ message: "User deleted successfully" });
         } catch (error) {
@@ -215,7 +216,7 @@ class UserController{
             const user = await UserController.getUserByResetToken({ params: { token } });
 
             // Hash da senha
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
+            const hashedPassword = await bcrypt.hash(password, 10);
 
             // Atualizar usuário e resetar token/data de expiração
             const updatedData = {
@@ -224,7 +225,9 @@ class UserController{
                 resetPasswordTokenExpiry: null
             };
 
-            await User.update(updatedData, { where: { id: user.id } });
+            // await User.destroy({ where: { id: userId } }); -> onde dentro da função está definido "userId"?
+
+            await UserService.updateUser(userId, updatedData)
 
             return res.status(200).json({ message: "Password updated successfully" });
         } catch(error) {
