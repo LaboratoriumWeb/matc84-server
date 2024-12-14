@@ -21,7 +21,10 @@ User.init({
     name: DataTypes.STRING,
     email: DataTypes.STRING,
     password: DataTypes.STRING,
-    role: DataTypes.STRING,
+    role: {
+        type:DataTypes.STRING,
+        defaultValue: 'user'
+    },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
 }, {
@@ -29,11 +32,6 @@ User.init({
     modelName: "User",
     tableName: "users",
     timestamps: true,
-    defaultScope: {
-        attributes: {
-            exclude: ['password']
-        }
-    }
 });
 
 module.exports = User;

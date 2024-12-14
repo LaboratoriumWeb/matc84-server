@@ -9,9 +9,9 @@ class UserController{
     
     static async create(req, res) {
         try {
-            const { name, email, password, role } = req.body;
+            const { name, email, password } = req.body;
     
-            if (!(name && email && password && role)) {
+            if (!(name && email && password)) {
                 return res.status(400).json({ message: "All input fields are required" });
             }
     
@@ -23,10 +23,11 @@ class UserController{
     
             const hashedPassword = await bcrypt.hash(password, 10);
     
-            const newUser = await UserService.createUser(name, email, hashedPassword, role);
+            const newUser = await UserService.createUser(name, email, hashedPassword);
     
             return res.status(201).json({ message: "User created", user: newUser });
         } catch (error) {
+            console.log(error.message)
             return res.status(500).json({ error: error.message || "Internal Server Error" });
         }
     }
