@@ -222,7 +222,9 @@ class UserController{
                 resetPasswordTokenExpiry: null
             };
 
-            await User.update(updatedData, { where: { id: user.id } });
+            // await User.destroy({ where: { id: userId } }); -> onde dentro da função está definido "userId"?
+
+            await UserService.updateUser(userId, updatedData)
 
             return res.status(200).json({ message: "Password updated successfully" });
         } catch(error) {

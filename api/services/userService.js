@@ -23,7 +23,11 @@ class UserService{
     }
 
     static async deleteUser(userId){
+
         await User.destroy({ where: { id: userId } });
+
     }
+
+    static async 
 }
 module.exports = UserService;
