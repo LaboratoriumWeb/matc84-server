@@ -153,7 +153,7 @@ class UserController{
             // Verificar se token é válido
             const user = await User.findOne({ where: { resetToken, }});
 
-            if (!user || !(user.resetTokenExpiry < Date.now())) {
+            if (!user || user.resetTokenExpiry < Date.now()) {
                 return res.status(400).json({ message: "Invalid or expired token" });
             }
 
