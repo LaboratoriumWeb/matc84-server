@@ -7,24 +7,27 @@ const UserService = require("../services/userService")
 
 class UserController{
     
-    static async create(req, res){
-        try{
-            const { name, email, password, role } = req.query;
-            if (!(name && email && senha && role)) {
-                throw "All input are required";
+    static async create(req, res) {
+        try {
+            const { name, email, password, role } = req.body;
+    
+            if (!(name && email && password && role)) {
+                return res.status(400).json({ message: "All input fields are required" });
             }
-
-            const user = await User.findOne({where: {email}});
-
-            user ? res.status(400).json({message: "Email already registered"}) : '';
-           
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-            await UserService.createUser(name, email, hashedPassword, role)
-
-            return res.status(201).json({message: "User created"}, newUser);
-        }catch(error){
-            return error;
+    
+            const user = await User.findOne({ where: { email } });
+    
+            if (user) {
+                return res.status(400).json({ message: "Email already registered" });
+            }
+    
+            const hashedPassword = await bcrypt.hash(password, 10);
+    
+            const newUser = await UserService.createUser(name, email, hashedPassword, role);
+    
+            return res.status(201).json({ message: "User created", user: newUser });
+        } catch (error) {
+            return res.status(500).json({ error: error.message || "Internal Server Error" });
         }
     }
 

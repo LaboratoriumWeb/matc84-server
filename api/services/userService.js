@@ -15,6 +15,8 @@ class UserService{
         })
 
         delete newUser.dataValues.password;
+
+        return newUser;
     }
 
     static async updateUser(userId, updatedData){
