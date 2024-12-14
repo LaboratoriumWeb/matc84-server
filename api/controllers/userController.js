@@ -216,7 +216,7 @@ class UserController{
             const user = await UserController.getUserByResetToken({ params: { token } });
 
             // Hash da senha
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
+            const hashedPassword = await bcrypt.hash(password, 10);
 
             // Atualizar usuário e resetar token/data de expiração
             const updatedData = {
