@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 
-class authService{
+class AuthService{
     
     static async login(email, password){
         const user = await User.findOne({ where: { email } });
@@ -9,3 +9,4 @@ class authService{
         return isMatch;
     }
 }
+module.exports = AuthService;
