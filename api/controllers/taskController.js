@@ -1,6 +1,5 @@
 const Task = require("../models/taskModel");
 
-class TaskController{
 
 const User = require("../models/userModel")
 
@@ -52,7 +51,6 @@ class TaskController{
         }
     }
 
-  } //Comment - Felipe: Faz sentido retornar todas as Tasks do banco de dados independente do usuário?
 
     async getById(req, res) {
         try {

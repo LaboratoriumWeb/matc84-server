@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs")
 const crypto = require("crypto")
 const nodemailer = require("nodemailer")
 const {Op} = require("sequelize")
+const UserService = require("../services/userService")
 
 class UserController{
     static async create(req, res){
@@ -18,14 +19,8 @@ class UserController{
            
             const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-            const newUser = await User.create({
-                name,
-                email: email.toLowerCase(),
-                password: hashedPassword,
-                role
-            })
-
-            delete newUser.dataValues.password;
+            UserController.createUser(name, email, hashedPassword, role)
+            
             return res.status(201).json({message: "User created"}, newUser);
         }catch(error){
             return error;
