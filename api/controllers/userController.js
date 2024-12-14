@@ -6,6 +6,7 @@ const {Op} = require("sequelize")
 const UserService = require("../services/userService")
 
 class UserController{
+    
     static async create(req, res){
         try{
             const { name, email, password, role } = req.query;
@@ -19,8 +20,8 @@ class UserController{
            
             const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-            UserController.createUser(name, email, hashedPassword, role)
-            
+            await UserService.createUser(name, email, hashedPassword, role)
+
             return res.status(201).json({message: "User created"}, newUser);
         }catch(error){
             return error;
@@ -56,13 +57,15 @@ class UserController{
                 updatedData.email = email.toLowerCase();
             }
     
-            await User.update(updatedData, { where: { id: userId } });
-    
+           
+            await UserService.updateUser(userId, updatedData)
+
             // Retornar os dados do usuário atualizados
             const updatedUser = await User.findOne({ where: { id: userId } });
             delete updatedUser.dataValues.password; // Não mostrar a senha por motivos de segurança
     
             return res.status(200).json({ message: "User updated successfully", user: updatedUser });
+
         } catch (error) {
             return res.status(500).json({ message: "Error updating user", error: error.message });
         }
@@ -79,7 +82,7 @@ class UserController{
             }
 
             // Deletar usuário
-            await User.destroy({ where: { id: userId } });
+            await UserService.deleteUser(userId)
             
             return res.status(200).json({ message: "User deleted successfully" });
         } catch (error) {
