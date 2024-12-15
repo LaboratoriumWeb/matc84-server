@@ -151,7 +151,7 @@
  */
 
 const express = require("express");
-const { create, getAll, getUserById, update, delete: deleteUser } = require("../controllers/userController");
+const { create, getAll, getUserById, update, delete: deleteUser, requestPasswordReset, updatePassword } = require("../controllers/userController");
 const router = express.Router();
 
 router.post("/register", create);
@@ -159,5 +159,7 @@ router.get("/", getAll);
 router.get("/:id", getUserById);
 router.put("/:id", update);
 router.delete("/:id", deleteUser);
+router.post("/password-reset", requestPasswordReset);
+router.post("/password-reset/:token", updatePassword);
 
 module.exports = router;

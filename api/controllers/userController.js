@@ -195,7 +195,7 @@ class UserController{
                 subject: "Recuperação de senha",
                 text: `Você está recebendo este e-mail porque você (ou outra pessoa) solicitou uma mudança de senha.\n\n
                 Por favor, clique ou copie e cole o link a seguir no seu navegador para prosseguir com a operação:\n\n
-                http://${req.headers.host}/reset/${resetToken}\n\n
+                http://${req.headers.host}/password-reset/${resetToken}\n\n
                 Se você não solicitou essa alteração, ignore este e-mail e sua senha permanecerá inalterada.\n
                 Por favor, não responda a este e-mail.\n`,
             };
