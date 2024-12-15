@@ -10,17 +10,20 @@ class UserController{
     static async create(req, res) {
         try {
             const { name, email, password } = req.body;
-    
+            
             if (!(name && email && password)) {
                 return res.status(400).json({ message: "All input fields are required" });
             }
-    
-            const user = await User.findOne({ where: { email } });
-    
+            console.log("passei aqui")
+            const user = await UserService.getUserByEmail(email);
+            console.log("passei aqui")
+            
+
             if (user) {
                 return res.status(400).json({ message: "Email already registered" });
             }
-    
+
+            
             const hashedPassword = await bcrypt.hash(password, 10);
     
             const newUser = await UserService.createUser(name, email, hashedPassword);
@@ -38,7 +41,7 @@ class UserController{
             const userId = req.params.id; 
             
             // Verificar se usuário existe
-            const user = await User.findOne({ where: { id: userId } });
+            const user = await UserService.getUserById(userId);
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
@@ -52,7 +55,7 @@ class UserController{
             }
     
             if (email) {
-                const existingUser = await User.findOne({ where: { email } });
+                const existingUser = await UserService.getUserByEmail(email);
 
                 if (existingUser && existingUser.id !== userId) { // Verificar se email já está registrado
                     return res.status(400).json({ message: "Email already registered" });
@@ -80,7 +83,8 @@ class UserController{
             const userId = req.params.id;
             
             // Verificar se usuário existe
-            const user = await User.findOne({ where: { id: userId } });
+            const user = await UserService.getUserById(userId);
+
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
@@ -96,13 +100,7 @@ class UserController{
 
     static async getAll(req, res) {
         try {
-            // Pegar todos os usuários
-            const users = await User.findAll();
-
-            users.forEach(user => {
-                delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
-            });
-
+            const users = await UserService.getAllUsers();
             return res.status(200).json({ users });
         } catch (error) {
             return res.status(500).json({ message: "Error getting users", error: error.message });
@@ -112,14 +110,13 @@ class UserController{
     static async getUserById(req, res) {
         try {
             const userId = req.params.id;
-            
+        
             // Verificar se usuário existe
-            const user = await User.findOne({ where: { id: userId } });
+            const user = await UserService.getUserById(userId);
+
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
-
-            delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
 
             // Retornar usuário
             return res.status(200).json({ user });
@@ -128,49 +125,12 @@ class UserController{
         }
     }
 
-    static async getUserByEmail(req, res) {
-        try {
-            const email = req.body;
-            
-            // Verificar se usuário existe
-            const user = User.findOne({ where: { email } });
-
-            if (!user) {
-                return res.status(404).json({ message: "User not found" });
-            }
-
-            delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
-
-            // Retornar usuário
-            return res.status(200).json({ user });
-        } catch(error) {
-            return res.status(500).json({ message: "Error getting user", error: error.message });
-        }
-    }
-
-    static async getUserByResetToken(req, res) {
-        try {
-            const resetToken  = req.params.token;
-            
-            // Verificar se token é válido
-            const user = await User.findOne({ where: { resetToken, }});
-
-            if (!user || user.resetTokenExpiry < Date.now()) {
-                return res.status(400).json({ message: "Invalid or expired token" });
-            }
-
-            user.deleteDataValues.password; // Não mostrar a senha por motivos de segurança
-
-            return res.status(200).json({ user });
-        } catch(error) {
-            return res.status(500).json({ message: "Error getting user", error: error.message });
-        }
-    }
-
     static async requestPasswordReset(req, res) {
         try {
             const { email } = req.body;
-            const user = await UserController.getUserByEmail({ body: { email } });
+            const user = await UserService.getUserByEmail(email);
+
+            if(!user)return res.status(404).json({ message: "User not found" });
 
             // Gerar token de reset de senha
             const resetToken = crypto.randomBytes(20).toString("hex");
@@ -208,33 +168,6 @@ class UserController{
         }
     }
 
-    static async updatePassword(req, res) {
-        try {
-            const { token } = req.params;
-            const { password } = req.body;
-
-            // Verificar se token é válido
-            const user = await UserController.getUserByResetToken({ params: { token } });
-
-            // Hash da senha
-            const hashedPassword = await bcrypt.hash(password, 10);
-
-            // Atualizar usuário e resetar token/data de expiração
-            const updatedData = {
-                password: hashedPassword,
-                resetPasswordToken: null,
-                resetPasswordTokenExpiry: null
-            };
-
-            // await User.destroy({ where: { id: userId } }); -> onde dentro da função está definido "userId"?
-
-            await UserService.updateUser(userId, updatedData)
-
-            return res.status(200).json({ message: "Password updated successfully" });
-        } catch(error) {
-            return res.status(500).json({ message: "Error updating password", error: error.message });
-        }
-    }
     
 }
 
