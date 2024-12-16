@@ -3,6 +3,7 @@ const express = require("express");
 const { sequelize, initializeSequelize } = require("./database/database.js");
 const app = express();
 const cors = require("cors");
+const createAdminUser = require("./helpers/createAdminUser");
 const authRoutes = require("./routes/auth.js");
 const userRoutes = require("./routes/user.js");
 const { swaggerUi, swaggerSpec } = require("./helpers/swagger.js");
@@ -21,8 +22,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 initializeSequelize().then(() => {
   sequelize.sync().then(() => {
-    app.listen(process.env.APP_PORT, () => {
-      console.log(`Servidor rodando em http://localhost:${process.env.APP_PORT}/`);
+    createAdminUser().then(() => {
+      app.listen(process.env.APP_PORT, () => {
+        console.log(`Servidor rodando em http://localhost:${process.env.APP_PORT}/`);
+        console.log(`Documentação Swagger disponível em http://localhost:${process.env.APP_PORT}/api-docs`);
+      });
     });
   }).catch(err => {
     console.error("Erro ao sincronizar o banco de dados:", err);
