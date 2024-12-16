@@ -86,7 +86,7 @@ class UserController{
             }
 
             // Deletar usuário
-            await UserService.deleteUser(userId)
+            await UserService.deleteUser(userId);
             
             return res.status(200).json({ message: "User deleted successfully" });
         } catch (error) {
@@ -133,7 +133,7 @@ class UserController{
             const email = req.body;
             
             // Verificar se usuário existe
-            const user = User.findOne({ where: { email } });
+            const user = UserService.getUserByEmail(email);
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
@@ -150,10 +150,10 @@ class UserController{
 
     static async getUserByResetToken(req, res) {
         try {
-            const resetToken  = req.params.token;
+            const { resetToken }  = req.params;
             
             // Verificar se token é válido
-            const user = await User.findOne({ where: { resetToken, }});
+            const user = await UserService.getUserByResetToken(resetToken);
 
             if (!user || user.resetTokenExpiry < Date.now()) {
                 return res.status(400).json({ message: "Invalid or expired token" });
@@ -170,7 +170,11 @@ class UserController{
     static async requestPasswordReset(req, res) {
         try {
             const { email } = req.body;
-            const user = await UserController.getUserByEmail({ body: { email } });
+            const user = await UserService.getUserByEmail(email);
+
+            if (!user) {
+                return res.status(400).json({ message: "Invalid email" });
+            }
 
             // Gerar token de reset de senha
             const resetToken = crypto.randomBytes(20).toString("hex");
@@ -178,7 +182,7 @@ class UserController{
 
             // Atualizar usuário com token e data de expiração
             // Adicionar campos de resetToken e resetTokenExpiry no User que necessita deles
-            await User.update({ resetToken, resetTokenExpiry }, { where: { email } });
+            await UserService.updateUser(user.id, { resetToken, resetTokenExpiry });
 
             // Enviar email com link para reset de senha
             const transporter = nodemailer.createTransport({
@@ -194,9 +198,9 @@ class UserController{
                 from: process.env.EMAIL_USER,
                 subject: "Recuperação de senha",
                 text: `Você está recebendo este e-mail porque você (ou outra pessoa) solicitou uma mudança de senha.\n\n
-                Por favor, clique ou copie e cole o link a seguir no seu navegador para prosseguir com a operação:\n\n
-                http://${req.headers.host}/reset/${resetToken}\n\n
-                Se você não solicitou essa alteração, ignore este e-mail e sua senha permanecerá inalterada.\n
+                Por favor, clique ou copie e cole o link a seguir no seu navegador para prosseguir com a operação:\n
+                http://${req.headers.host}/users/password-reset/${resetToken}\n
+                Se você não solicitou essa alteração, ignore este e-mail e sua senha permanecerá inalterada.\n\n
                 Por favor, não responda a este e-mail.\n`,
             };
 
@@ -214,7 +218,11 @@ class UserController{
             const { password } = req.body;
 
             // Verificar se token é válido
-            const user = await UserController.getUserByResetToken({ params: { token } });
+            const user = await UserService.getUserByResetToken(token);
+
+            if (!user || user.resetTokenExpiry < Date.now()) {
+                return res.status(400).json({ message: "Invalid or expired token" });
+            }
 
             // Hash da senha
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -226,9 +234,7 @@ class UserController{
                 resetPasswordTokenExpiry: null
             };
 
-            // await User.destroy({ where: { id: userId } }); -> onde dentro da função está definido "userId"?
-
-            await UserService.updateUser(userId, updatedData)
+            await UserService.updateUser(user.id, updatedData)
 
             return res.status(200).json({ message: "Password updated successfully" });
         } catch(error) {

@@ -16,6 +16,7 @@ class AuthController {
             if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
             const token = generateToken(user);
+            
             return res.status(200).json({ token, user: { id: user.id, name: user.name, email: user.email } });
         } catch (error) {
             console.log(error);

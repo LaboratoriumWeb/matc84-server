@@ -8,10 +8,10 @@ class UserService{
 
     static async createUser(name, email, hashedPassword, role){
         const newUser = await User.create({
-            name,
+            name: name,
             email: email.toLowerCase(),
             password: hashedPassword,
-            role
+            role: role
         })
 
         delete newUser.dataValues.password;
@@ -25,9 +25,43 @@ class UserService{
     }
 
     static async deleteUser(userId){
-
         await User.destroy({ where: { id: userId } });
 
+    }
+
+    static async getUserByEmail(email){
+        const user = await User.findOne({ where: { email } });
+        // if(user) delete user.dataValues.password;
+
+        return user;
+    }
+
+    static async getUserById(userId){
+        const user = await User.findOne({ where: { id: userId } });
+        if(user) delete user.dataValues.password;
+        return user;
+    }
+
+    static async getAllUsers(){
+         const users = await User.findAll();
+
+         users.forEach(user => {
+             delete user.dataValues.password;
+         });
+         
+         return users;
+    }
+
+    static async getUserByEmail(email) {
+        const user = await User.findOne({ where: { email } });
+
+        return user; // Precisa retornar com a senha, pois método é chamado para resetar a senha
+    }
+
+    static async getUserByResetToken(token) {
+        const user = await User.findOne({ where: { resetToken: token } });
+
+        return user; // Precisa retornar com a senha, pois método é chamado para resetar a senha
     }
 
 }
