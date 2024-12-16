@@ -12,11 +12,25 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:3001', // URL base da API
+        url: `http://localhost:${process.env.APP_PORT}`,
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
       },
     ],
   },
-  apis: ['./api/routes/*.js'], // Caminho para os arquivos de rotas
+  apis: ['./api/swagger/*.js'], // Caminho para os arquivos de anotações Swagger
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
