@@ -9,21 +9,22 @@ class UserController{
     
     static async create(req, res) {
         try {
-            const { name, email, password } = req.body;
-    
+            const { name, email, password, role } = req.body;
+            
             if (!(name && email && password)) {
                 return res.status(400).json({ message: "All input fields are required" });
             }
-    
-            const user = await User.findOne({ where: { email } });
-    
+            const user = await UserService.getUserByEmail(email);
+            
+
             if (user) {
                 return res.status(400).json({ message: "Email already registered" });
             }
-    
+
+            
             const hashedPassword = await bcrypt.hash(password, 10);
     
-            const newUser = await UserService.createUser(name, email, hashedPassword);
+            const newUser = await UserService.createUser(name, email, hashedPassword, role);
     
             return res.status(201).json({ message: "User created", user: newUser });
         } catch (error) {
@@ -32,13 +33,14 @@ class UserController{
         }
     }
 
+
     static async update(req, res) {
         try {
             const { name, email } = req.body;
             const userId = req.params.id; 
             
             // Verificar se usuário existe
-            const user = await User.findOne({ where: { id: userId } });
+            const user = await UserService.getUserById(userId);
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
@@ -52,7 +54,7 @@ class UserController{
             }
     
             if (email) {
-                const existingUser = await User.findOne({ where: { email } });
+                const existingUser = await UserService.getUserByEmail(email);
 
                 if (existingUser && existingUser.id !== userId) { // Verificar se email já está registrado
                     return res.status(400).json({ message: "Email already registered" });
@@ -65,8 +67,7 @@ class UserController{
             await UserService.updateUser(userId, updatedData)
 
             // Retornar os dados do usuário atualizados
-            const updatedUser = await User.findOne({ where: { id: userId } });
-            delete updatedUser.dataValues.password; // Não mostrar a senha por motivos de segurança
+            const updatedUser = await UserService.getUserById(userId)
     
             return res.status(200).json({ message: "User updated successfully", user: updatedUser });
 
@@ -80,13 +81,14 @@ class UserController{
             const userId = req.params.id;
             
             // Verificar se usuário existe
-            const user = await User.findOne({ where: { id: userId } });
+            const user = await UserService.getUserById(userId);
+
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
 
             // Deletar usuário
-            await UserService.deleteUser(userId);
+            await UserService.deleteUser(userId)
             
             return res.status(200).json({ message: "User deleted successfully" });
         } catch (error) {
@@ -94,15 +96,10 @@ class UserController{
         }
     }
 
+
     static async getAll(req, res) {
         try {
-            // Pegar todos os usuários
-            const users = await User.findAll();
-
-            users.forEach(user => {
-                delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
-            });
-
+            const users = await UserService.getAllUsers();
             return res.status(200).json({ users });
         } catch (error) {
             return res.status(500).json({ message: "Error getting users", error: error.message });
@@ -112,14 +109,13 @@ class UserController{
     static async getUserById(req, res) {
         try {
             const userId = req.params.id;
-            
+        
             // Verificar se usuário existe
-            const user = await User.findOne({ where: { id: userId } });
+            const user = await UserService.getUserById(userId);
+
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
-
-            delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
 
             // Retornar usuário
             return res.status(200).json({ user });
@@ -139,8 +135,6 @@ class UserController{
                 return res.status(404).json({ message: "User not found" });
             }
 
-            delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
-
             // Retornar usuário
             return res.status(200).json({ user });
         } catch(error) {
@@ -158,8 +152,6 @@ class UserController{
             if (!user || user.resetTokenExpiry < Date.now()) {
                 return res.status(400).json({ message: "Invalid or expired token" });
             }
-
-            user.deleteDataValues.password; // Não mostrar a senha por motivos de segurança
 
             return res.status(200).json({ user });
         } catch(error) {
