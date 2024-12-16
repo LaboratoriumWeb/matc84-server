@@ -25,14 +25,13 @@ class UserService{
     }
 
     static async deleteUser(userId){
-
         await User.destroy({ where: { id: userId } });
 
     }
 
     static async getUserByEmail(email){
         const user = await User.findOne({ where: { email } });
-        if(user) delete user.dataValues.password;
+        // if(user) delete user.dataValues.password;
 
         return user;
     }
@@ -49,7 +48,20 @@ class UserService{
          users.forEach(user => {
              delete user.dataValues.password;
          });
+         
          return users;
+    }
+
+    static async getUserByEmail(email) {
+        const user = await User.findOne({ where: { email } });
+
+        return user; // Precisa retornar com a senha, pois método é chamado para resetar a senha
+    }
+
+    static async getUserByResetToken(token) {
+        const user = await User.findOne({ where: { resetToken: token } });
+
+        return user; // Precisa retornar com a senha, pois método é chamado para resetar a senha
     }
 
 }

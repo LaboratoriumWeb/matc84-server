@@ -10,20 +10,17 @@ class UserController{
     static async create(req, res) {
         try {
             const { name, email, password } = req.body;
-            
+    
             if (!(name && email && password)) {
                 return res.status(400).json({ message: "All input fields are required" });
             }
-            console.log("passei aqui")
-            const user = await UserService.getUserByEmail(email);
-            console.log("passei aqui")
-            
-
+    
+            const user = await User.findOne({ where: { email } });
+    
             if (user) {
                 return res.status(400).json({ message: "Email already registered" });
             }
-
-            
+    
             const hashedPassword = await bcrypt.hash(password, 10);
     
             const newUser = await UserService.createUser(name, email, hashedPassword);
@@ -41,7 +38,7 @@ class UserController{
             const userId = req.params.id; 
             
             // Verificar se usuário existe
-            const user = await UserService.getUserById(userId);
+            const user = await User.findOne({ where: { id: userId } });
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
@@ -55,7 +52,7 @@ class UserController{
             }
     
             if (email) {
-                const existingUser = await UserService.getUserByEmail(email);
+                const existingUser = await User.findOne({ where: { email } });
 
                 if (existingUser && existingUser.id !== userId) { // Verificar se email já está registrado
                     return res.status(400).json({ message: "Email already registered" });
@@ -83,8 +80,7 @@ class UserController{
             const userId = req.params.id;
             
             // Verificar se usuário existe
-            const user = await UserService.getUserById(userId);
-
+            const user = await User.findOne({ where: { id: userId } });
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
@@ -100,7 +96,13 @@ class UserController{
 
     static async getAll(req, res) {
         try {
-            const users = await UserService.getAllUsers();
+            // Pegar todos os usuários
+            const users = await User.findAll();
+
+            users.forEach(user => {
+                delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
+            });
+
             return res.status(200).json({ users });
         } catch (error) {
             return res.status(500).json({ message: "Error getting users", error: error.message });
@@ -110,17 +112,57 @@ class UserController{
     static async getUserById(req, res) {
         try {
             const userId = req.params.id;
-        
+            
             // Verificar se usuário existe
-            const user = await UserService.getUserById(userId);
+            const user = await User.findOne({ where: { id: userId } });
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
+
+            // Retornar usuário
+            return res.status(200).json({ user });
+        } catch (error) {
+            return res.status(500).json({ message: "Error getting user", error: error.message });
+        }
+    }
+
+    static async getUserByEmail(req, res) {
+        try {
+            const email = req.body;
+            
+            // Verificar se usuário existe
+            const user = UserService.getUserByEmail(email);
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
 
+            delete user.dataValues.password; // Não mostrar a senha por motivos de segurança
+
             // Retornar usuário
             return res.status(200).json({ user });
-        } catch (error) {
+        } catch(error) {
+            return res.status(500).json({ message: "Error getting user", error: error.message });
+        }
+    }
+
+    static async getUserByResetToken(req, res) {
+        try {
+            const { resetToken }  = req.params;
+            
+            // Verificar se token é válido
+            const user = await UserService.getUserByResetToken(resetToken);
+
+            if (!user || user.resetTokenExpiry < Date.now()) {
+                return res.status(400).json({ message: "Invalid or expired token" });
+            }
+
+            user.deleteDataValues.password; // Não mostrar a senha por motivos de segurança
+
+            return res.status(200).json({ user });
+        } catch(error) {
             return res.status(500).json({ message: "Error getting user", error: error.message });
         }
     }
@@ -130,7 +172,9 @@ class UserController{
             const { email } = req.body;
             const user = await UserService.getUserByEmail(email);
 
-            if(!user)return res.status(404).json({ message: "User not found" });
+            if (!user) {
+                return res.status(400).json({ message: "Invalid email" });
+            }
 
             // Gerar token de reset de senha
             const resetToken = crypto.randomBytes(20).toString("hex");
@@ -138,7 +182,7 @@ class UserController{
 
             // Atualizar usuário com token e data de expiração
             // Adicionar campos de resetToken e resetTokenExpiry no User que necessita deles
-            await User.update({ resetToken, resetTokenExpiry }, { where: { email } });
+            await UserService.updateUser(user.id, { resetToken, resetTokenExpiry });
 
             // Enviar email com link para reset de senha
             const transporter = nodemailer.createTransport({
@@ -154,9 +198,9 @@ class UserController{
                 from: process.env.EMAIL_USER,
                 subject: "Recuperação de senha",
                 text: `Você está recebendo este e-mail porque você (ou outra pessoa) solicitou uma mudança de senha.\n\n
-                Por favor, clique ou copie e cole o link a seguir no seu navegador para prosseguir com a operação:\n\n
-                http://${req.headers.host}/password-reset/${resetToken}\n\n
-                Se você não solicitou essa alteração, ignore este e-mail e sua senha permanecerá inalterada.\n
+                Por favor, clique ou copie e cole o link a seguir no seu navegador para prosseguir com a operação:\n
+                http://${req.headers.host}/users/password-reset/${resetToken}\n
+                Se você não solicitou essa alteração, ignore este e-mail e sua senha permanecerá inalterada.\n\n
                 Por favor, não responda a este e-mail.\n`,
             };
 
@@ -168,6 +212,35 @@ class UserController{
         }
     }
 
+    static async updatePassword(req, res) {
+        try {
+            const { token } = req.params;
+            const { password } = req.body;
+
+            // Verificar se token é válido
+            const user = await UserService.getUserByResetToken(token);
+
+            if (!user || user.resetTokenExpiry < Date.now()) {
+                return res.status(400).json({ message: "Invalid or expired token" });
+            }
+
+            // Hash da senha
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Atualizar usuário e resetar token/data de expiração
+            const updatedData = {
+                password: hashedPassword,
+                resetPasswordToken: null,
+                resetPasswordTokenExpiry: null
+            };
+
+            await UserService.updateUser(user.id, updatedData)
+
+            return res.status(200).json({ message: "Password updated successfully" });
+        } catch(error) {
+            return res.status(500).json({ message: "Error updating password", error: error.message });
+        }
+    }
     
 }
 

@@ -25,6 +25,8 @@ User.init({
         type:DataTypes.STRING,
         defaultValue: 'user'
     },
+    resetToken: DataTypes.STRING,
+    resetTokenExpiry: DataTypes.DATE,
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
 }, {

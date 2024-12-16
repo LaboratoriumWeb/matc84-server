@@ -150,6 +150,62 @@
  *         description: Error deleting user
  */
 
+/**
+ * @swagger
+ * /users/password-reset:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset link sent
+ *       400:
+ *         description: Invalid email
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /users/reset-password/{token}:
+ *   post:
+ *     summary: Update password using reset token
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Password reset token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: New password
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Invalid token or password
+ *       500:
+ *         description: Server error
+ */
+
 const express = require("express");
 const { create, getAll, getUserById, update, delete: deleteUser, requestPasswordReset, updatePassword } = require("../controllers/userController");
 const router = express.Router();
@@ -159,6 +215,8 @@ router.get("/", getAll);
 router.get("/:id", getUserById);
 router.put("/:id", update);
 router.delete("/:id", deleteUser);
+
+// Rotas para redefinição de senha
 router.post("/password-reset", requestPasswordReset);
 router.post("/password-reset/:token", updatePassword);
 
