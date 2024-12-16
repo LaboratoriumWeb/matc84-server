@@ -97,7 +97,7 @@ Pronto! O backend está configurado e pronto para ser usado.
    Essa é uma conta throwaway criada somente para testar essa feature.
 
 3. (OPCIONAL) Caso não queira utilizar a conta do passo 2, você pode usar qualquer conta do Gmail contanto que siga os seguintes passos:
-   _ Ative a 2FA da sua conta
-   _ Vá nas configurações de sua conta, depois pesquise "palavras-passe de app" (app passwords)
-   _ Crie uma nova app password
-   _ Vai aparecer um código de 16 dígitos na sua tela. Copie-o e cole-o exatamente do jeito que está em EMAIL_PASS
+   - Ative a 2FA da sua conta
+   - Vá nas configurações de sua conta, depois pesquise "palavras-passe de app" (app passwords)
+   - Crie uma nova app password
+   - Vai aparecer um código de 16 dígitos na sua tela. Copie-o e cole-o exatamente do jeito que está em EMAIL_PASS

@@ -86,7 +86,7 @@ class UserController{
             }
 
             // Deletar usuário
-            await UserService.deleteUser(userId)
+            await UserService.deleteUser(userId);
             
             return res.status(200).json({ message: "User deleted successfully" });
         } catch (error) {
